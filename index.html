@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>美观的前端页面</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            width: 100%;
+            max-width: 1200px;
+            margin: 20px 0;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        #chart-container {
+            width: 100%;
+            height: 500px;
+            margin: 20px 0;
+        }
+        .loading {
+            text-align: center;
+            color: #666;
+            font-size: 1.2em;
+        }
+    </style>
+    <script src="https://cdn.staticfile.org/echarts/5.4.3/echarts.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>数据可视化</h1>
+        <div id="chart-container" style="width: 50%; height: 500px; float: left;"></div>
+<div id="pie-chart-container" style="width: 50%; height: 500px; float: left;"></div>
+        <div class="loading">数据加载中...</div>
+    </div>
+    <script>
+        const loadingDiv = document.querySelector('.loading');
+        loadingDiv.style.display = 'block';
+
+        fetch('http://127.0.0.1:5000/data')
+           .then(response => response.json())
+           .then(data => {
+                loadingDiv.style.display = 'none';
+                const chart = echarts.init(document.getElementById('chart-container'));
+                const names = data.map(item => item.name);
+                const ages = data.map(item => item.age);
+                const lineOption = {
+                    title: {
+                        text: '年龄分布折线图',
+                        left: 'center'
+                    },
+                    tooltip: {
+                        trigger: 'axis'
+                    },
+                    xAxis: {
+                        type: 'category',
+                        data: names,
+                        axisLabel: {
+                            rotate: 45,
+                            interval: 0
+                        }
+                    },
+                    yAxis: {
+                        type: 'value'
+                    },
+                    series: [{
+                        data: ages,
+                        type: 'line',
+                        smooth: true,
+                        itemStyle: {
+                            color: '#4e73df'
+                        }
+                    }]
+                };
+                chart.setOption(lineOption);
+
+// 初始化饼状图实例
+const pieChart = echarts.init(document.getElementById('pie-chart-container'));
+
+// 准备饼状图数据
+const pieData = data.map(item => ({ value: item.age, name: item.name }));
+
+// 配置饼状图选项
+const pieOption = {
+    title: {
+        text: '年龄分布饼状图',
+        left: 'center'
+    },
+    tooltip: {
+        trigger: 'item'
+    },
+    series: [{
+        type: 'pie',
+        radius: '50%',
+        data: pieData,
+        emphasis: {
+            itemStyle: {
+                shadowBlur: 10,
+                shadowOffsetX: 0,
+                shadowColor: 'rgba(0, 0, 0, 0.5)'
+            }
+        }
+    }]
+};
+
+// 使用刚指定的配置项和数据显示饼状图
+pieChart.setOption(pieOption);
+            })
+           .catch(error => {
+                loadingDiv.textContent = '数据加载失败，请重试';
+                console.error('数据加载失败:', error);
+            });
+    </script>
+</body>
+</html>
